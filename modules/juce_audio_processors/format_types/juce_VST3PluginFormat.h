@@ -68,8 +68,11 @@ public:
     StringArray searchPathsForPlugins (const FileSearchPath&, bool recursive, bool) override;
     bool doesPluginStillExist (const PluginDescription&) override;
     FileSearchPath getDefaultLocationsToSearch() override;
+   
+   void cancelShellScan();
 
 private:
+   ActionBroadcaster broadcaster;
     //==============================================================================
     void createPluginInstance (const PluginDescription&, double initialSampleRate,
                                int initialBufferSize, PluginCreationCallback) override;

@@ -780,7 +780,7 @@ private:
 };
 
 //==============================================================================
-struct DescriptionFactory
+struct DescriptionFactory : public ActionListener
 {
     DescriptionFactory (VST3HostContext* host, IPluginFactory* pluginFactory)
         : vst3HostContext (host), factory (pluginFactory)
@@ -869,14 +869,31 @@ struct DescriptionFactory
 
             if (result.failed())
                 break;
+#if JUCE_MODAL_LOOPS_PERMITTED
+           MessageManager::getInstance()->runDispatchLoopUntil( 20 );
+#endif
+           if (haltScan)
+           {
+              break;
+           }
         }
 
         return result;
     }
 
     virtual Result performOnDescription (PluginDescription&) = 0;
+   
+   void actionListenerCallback (const String& message) override
+   {
+      if ( message == "haltScan" )
+      {
+         haltScan = true;
+      }
+   }
 
 private:
+   
+   bool haltScan = false;
     VSTComSmartPtr<VST3HostContext> vst3HostContext;
     VSTComSmartPtr<IPluginFactory> factory;
 
@@ -3670,7 +3687,11 @@ void VST3PluginFormat::findAllTypesForFile (OwnedArray<PluginDescription>& resul
         {
             VSTComSmartPtr<VST3HostContext> host (new VST3HostContext());
             DescriptionLister lister (host, pluginFactory);
+           
+           broadcaster.addActionListener(&lister);
+           
             lister.findDescriptionsAndPerform (File (fileOrIdentifier));
+           broadcaster.removeAllActionListeners();
 
             results.addCopiesOf (lister.list);
         }
@@ -3790,6 +3811,10 @@ FileSearchPath VST3PluginFormat::getDefaultLocationsToSearch()
    #endif
 }
 
+void VST3PluginFormat::cancelShellScan()
+{
+   broadcaster.sendActionMessage("haltScan");
+}
 JUCE_END_NO_SANITIZE
 
 } // namespace juce
