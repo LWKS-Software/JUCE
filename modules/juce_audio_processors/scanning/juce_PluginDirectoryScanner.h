@@ -105,6 +105,9 @@ public:
         scanned.
     */
     String getNextPluginFileThatWillBeScanned() const;
+   
+    /** Returns the next identifier that will be scanned */
+    String getNextIdentifierThatWillBeScanned() const;
 
     /** Returns the estimated progress, between 0 and 1. */
     float getProgress() const                                       { return progress; }
