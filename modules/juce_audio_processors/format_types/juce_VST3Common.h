@@ -1122,7 +1122,11 @@ public:
                 if (prevFlags & ((FlagType) 1 << bit))
                 {
                     const auto itemIndex = (flagIndex * numFlagBits) + bit;
-                    callback (itemIndex, values[itemIndex].load (std::memory_order_relaxed));
+
+                    if (itemIndex < values.size())
+                        callback (itemIndex, values[itemIndex].load (std::memory_order_relaxed));
+                    else
+                        jassertfalse;
                 }
             }
         }
@@ -1173,7 +1177,7 @@ public:
     {
         floatCache.ifSet ([&] (size_t index, float value)
         {
-            callback ((Steinberg::int32) index, value);
+             callback ((Steinberg::int32) index, value);
         });
     }
 
